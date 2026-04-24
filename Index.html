@@ -1,0 +1,621 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app { font-family: var(--font-mono, monospace); padding: 1rem 0; color: var(--color-text-primary); }
+
+  /* Header */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+  .title { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; color: var(--color-text-secondary); text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-border-secondary); flex-shrink: 0; }
+  .dot.active { background: #3B6D11; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .hdr-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); cursor: pointer; white-space: nowrap; transition: background 0.12s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn.go { color: var(--color-text-success); border-color: var(--color-border-success); }
+  .btn.stop { color: var(--color-text-danger); border-color: var(--color-border-danger); }
+  .btn.accent { background: var(--color-background-secondary); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 1.25rem; }
+  .tab { font-family: var(--font-mono); font-size: 12px; padding: 8px 16px; border: none; background: none; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; letter-spacing: 0.04em; transition: color 0.12s; white-space: nowrap; }
+  .tab:hover { color: var(--color-text-primary); }
+  .tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+  .tab-badge { display: inline-block; font-size: 10px; background: var(--color-background-secondary); border-radius: 20px; padding: 1px 6px; margin-left: 5px; color: var(--color-text-tertiary); }
+  .tab.active .tab-badge { background: var(--color-border-secondary); color: var(--color-text-primary); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Net banner */
+  .net-banner { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; margin-bottom: 1.25rem; }
+  .net-banner-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-tertiary); margin-bottom: 10px; }
+  .net-fields { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .nf { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+  .nf label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary); }
+  .nf input { font-family: var(--font-mono); font-size: 12px; padding: 6px 9px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); }
+  .nf input::placeholder { color: var(--color-text-tertiary); }
+  .net-info { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--color-border-tertiary); align-items: center; }
+  .ni { display: flex; flex-direction: column; gap: 2px; }
+  .ni-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-tertiary); }
+  .ni-v { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+  .ni-v.dim { color: var(--color-text-secondary); }
+
+  /* Controls */
+  .controls-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 1.25rem; }
+  .cg { display: flex; flex-direction: column; gap: 4px; }
+  .cg label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary); }
+  .cg select, .cg input[type=number] { font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); }
+
+  /* Device manager panel */
+  .panel { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; margin-bottom: 1.25rem; }
+  .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-tertiary); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .single-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .single-row input { font-family: var(--font-mono); font-size: 12px; padding: 6px 9px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); }
+  .single-row input::placeholder { color: var(--color-text-tertiary); }
+  .ip-in { width: 150px; }
+  .nm-in { flex: 1; min-width: 100px; }
+  .bulk-section { border-top: 0.5px solid var(--color-border-tertiary); padding-top: 10px; margin-top: 4px; }
+  .bulk-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-secondary); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .bulk-hint { font-size: 10px; color: var(--color-text-tertiary); letter-spacing: 0; text-transform: none; }
+  .bulk-area { width: 100%; font-family: var(--font-mono); font-size: 11px; padding: 8px 10px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); resize: vertical; min-height: 72px; line-height: 1.7; }
+  .bulk-area::placeholder { color: var(--color-text-tertiary); }
+  .bulk-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .bulk-status { font-size: 11px; color: var(--color-text-secondary); margin-left: auto; }
+  .queue-wrap { border-top: 0.5px solid var(--color-border-tertiary); padding-top: 10px; margin-top: 10px; }
+  .queue-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .queue-list { display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; }
+  .qi { display: flex; align-items: center; gap: 8px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 5px 8px; }
+  .qi-ip { font-size: 12px; font-weight: 500; min-width: 120px; }
+  .qi-nm { flex: 1; }
+  .qi-nm input { font-family: var(--font-mono); font-size: 11px; background: transparent; border: none; color: var(--color-text-secondary); width: 100%; outline: none; }
+  .qi-nm input:focus { color: var(--color-text-primary); }
+  .qi-rm { background: none; border: none; cursor: pointer; color: var(--color-text-tertiary); font-size: 13px; padding: 0 2px; flex-shrink: 0; }
+  .qi-rm:hover { color: var(--color-text-danger); }
+  .queue-footer { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .q-ct { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* Progress */
+  .prog { height: 2px; background: var(--color-background-secondary); border-radius: 2px; margin-bottom: 1rem; overflow: hidden; display: none; }
+  .prog-fill { height: 100%; background: #3B6D11; border-radius: 2px; transition: width 0.5s linear; width: 0%; }
+
+  /* Summary chips */
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .chip { font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+  .chip b { font-weight: 500; color: var(--color-text-primary); }
+
+  /* Device cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; border-left-width: 2px; border-left-style: solid; border-left-color: var(--color-border-tertiary); }
+  .card.online { border-left-color: #3B6D11; }
+  .card.offline { border-left-color: #A32D2D; }
+  .card.pending { border-left-color: #BA7517; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-name { font-size: 12px; font-weight: 500; }
+  .card-ip { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; flex-shrink: 0; }
+  .badge.online { background: #EAF3DE; color: #27500A; }
+  .badge.offline { background: #FCEBEB; color: #791F1F; }
+  .badge.pending { background: #FAEEDA; color: #633806; }
+  .sparkline { width: 100%; height: 32px; margin-bottom: 8px; }
+  .stats3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .st { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 5px 7px; }
+  .st-l { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-tertiary); margin-bottom: 2px; }
+  .st-v { font-size: 13px; font-weight: 500; }
+  .st-v.g { color: #3B6D11; } .st-v.w { color: #854F0B; } .st-v.r { color: #A32D2D; }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; }
+  .last { font-size: 10px; color: var(--color-text-tertiary); }
+  .rm { font-size: 10px; background: none; border: none; cursor: pointer; color: var(--color-text-tertiary); font-family: var(--font-mono); padding: 1px 3px; }
+  .rm:hover { color: var(--color-text-danger); }
+  .empty { text-align: center; padding: 2.5rem; color: var(--color-text-tertiary); font-size: 11px; letter-spacing: 0.05em; grid-column: 1/-1; }
+
+  /* Results tab */
+  .results-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .results-toolbar select, .results-toolbar input[type=text] { font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); }
+  .results-toolbar input[type=text] { min-width: 140px; flex: 1; }
+  .results-toolbar input::placeholder { color: var(--color-text-tertiary); }
+  .tbl-wrap { overflow-x: auto; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: var(--color-background-secondary); }
+  th { padding: 8px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary); white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: var(--color-text-primary); }
+  th .sort-arrow { margin-left: 4px; opacity: 0.4; font-size: 9px; }
+  th.sorted .sort-arrow { opacity: 1; }
+  td { padding: 7px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--color-background-secondary); }
+  .ms-bar-cell { display: flex; align-items: center; gap: 8px; }
+  .ms-bar { height: 6px; border-radius: 3px; min-width: 2px; max-width: 120px; flex-shrink: 0; }
+  .pill { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
+  .pill.ok { background: #EAF3DE; color: #27500A; }
+  .pill.fail { background: #FCEBEB; color: #791F1F; }
+  .tbl-empty { text-align: center; padding: 2.5rem; color: var(--color-text-tertiary); font-size: 11px; }
+  .tbl-footer { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-top: 0.5px solid var(--color-border-tertiary); font-size: 11px; color: var(--color-text-secondary); gap: 10px; flex-wrap: wrap; }
+  .pager { display: flex; gap: 4px; }
+  .pg-btn { font-family: var(--font-mono); font-size: 11px; padding: 3px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+  .pg-btn:hover { background: var(--color-background-secondary); }
+  .pg-btn.cur { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
+  .pg-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* Log panel (inside results tab) */
+  .log-wrap { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; margin-top: 16px; }
+  .log-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .log-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); }
+  .log-body { height: 130px; overflow-y: auto; }
+  .le { display: flex; gap: 10px; font-size: 11px; border-bottom: 0.5px solid var(--color-border-tertiary); padding: 2px 0; }
+  .le-t { color: var(--color-text-tertiary); flex-shrink: 0; }
+  .le-ip { color: var(--color-text-secondary); flex-shrink: 0; min-width: 105px; }
+  .le-nm { color: var(--color-text-tertiary); flex-shrink: 0; min-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+  .le-m.ok { color: #3B6D11; } .le-m.fail { color: #A32D2D; }
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="title"><div class="dot" id="gDot"></div>Network monitor</div>
+    <div class="hdr-btns">
+      <button class="btn go" id="startBtn" onclick="startMon()">&#9654; Start</button>
+      <button class="btn stop" id="stopBtn" style="display:none" onclick="stopMon()">&#9632; Stop</button>
+      <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabs">
+    <button class="tab active" id="tab-setup" onclick="switchTab('setup')">Setup <span class="tab-badge" id="badge-setup">0</span></button>
+    <button class="tab" id="tab-monitor" onclick="switchTab('monitor')">Monitor <span class="tab-badge" id="badge-monitor">0</span></button>
+    <button class="tab" id="tab-results" onclick="switchTab('results')">Results <span class="tab-badge" id="badge-results">0</span></button>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div class="tab-panel active" id="panel-setup">
+    <div class="net-banner">
+      <div class="net-banner-title">Network configuration</div>
+      <div class="net-fields">
+        <div class="nf"><label>My device IP</label><input type="text" id="myIpIn" placeholder="e.g. 192.168.1.50" oninput="onNetChange()"></div>
+        <div class="nf"><label>Gateway IP</label><input type="text" id="gwIn" placeholder="e.g. 192.168.1.1"></div>
+        <div style="display:flex;gap:8px;align-self:flex-end;flex-wrap:wrap;">
+          <button class="btn" onclick="applyGateway()">+ Add gateway</button>
+          <button class="btn" onclick="guessGateway()">Auto-fill gateway</button>
+        </div>
+      </div>
+      <div class="net-info">
+        <div class="ni"><div class="ni-l">Subnet</div><div class="ni-v dim" id="subnetEl">—</div></div>
+        <div class="ni"><div class="ni-l">Public IP</div><div class="ni-v dim" id="pubIpEl">—</div></div>
+        <button class="btn" style="margin-left:auto" onclick="fetchPublicIp()">Fetch public IP</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>Add devices</span><span id="queueCount" style="color:var(--color-text-tertiary)">0 in queue</span></div>
+      <div class="single-row">
+        <input type="text" class="ip-in" id="sIp" placeholder="IP address" onkeydown="if(event.key==='Enter')singleAdd()">
+        <input type="text" class="nm-in" id="sNm" placeholder="Label (optional)" onkeydown="if(event.key==='Enter')singleAdd()">
+        <button class="btn accent" onclick="singleAdd()">+ Add</button>
+        <button class="btn" onclick="addCommon()">+ Common DNS</button>
+        <button class="btn" onclick="addSubnetRange()">+ Scan range</button>
+      </div>
+      <div class="bulk-section">
+        <div class="bulk-label"><span>Bulk add</span><span class="bulk-hint">One per line — IP or "IP, label"</span></div>
+        <textarea class="bulk-area" id="bulkArea" placeholder="192.168.1.1, Gateway&#10;192.168.1.10, NAS&#10;8.8.8.8, Google DNS&#10;1.1.1.1"></textarea>
+        <div class="bulk-actions">
+          <button class="btn accent" onclick="bulkAdd()">+ Add all</button>
+          <button class="btn" onclick="document.getElementById('bulkArea').value=''">Clear</button>
+          <span class="bulk-status" id="bulkStatus"></span>
+        </div>
+      </div>
+      <div class="queue-wrap" id="queueWrap" style="display:none">
+        <div class="queue-label">Device queue — click label to rename</div>
+        <div class="queue-list" id="queueList"></div>
+        <div class="queue-footer">
+          <span class="q-ct" id="qCt"></span>
+          <button class="btn" onclick="clearQueue()" style="margin-left:auto">Clear all</button>
+          <button class="btn go" onclick="commitQueue()">&#10003; Add to monitor</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <div class="cg"><label>Interval</label>
+        <select id="iSel"><option value="2000">2s</option><option value="5000" selected>5s</option><option value="10000">10s</option><option value="30000">30s</option><option value="60000">1min</option></select>
+      </div>
+      <div class="cg"><label>Duration</label>
+        <select id="dSel"><option value="60">1 min</option><option value="300" selected>5 min</option><option value="600">10 min</option><option value="1800">30 min</option><option value="3600">1 hr</option><option value="0">Continuous</option></select>
+      </div>
+      <div class="cg"><label>Timeout ms</label>
+        <input type="number" id="toIn" value="3000" min="500" max="10000" step="500" style="width:90px">
+      </div>
+    </div>
+  </div>
+
+  <!-- MONITOR TAB -->
+  <div class="tab-panel" id="panel-monitor">
+    <div class="prog" id="prog"><div class="prog-fill" id="progFill"></div></div>
+    <div class="summary" id="sum"></div>
+    <div class="grid" id="grid">
+      <div class="empty" id="emp">No devices yet. Go to Setup to add devices, then start monitoring.</div>
+    </div>
+  </div>
+
+  <!-- RESULTS TAB -->
+  <div class="tab-panel" id="panel-results">
+    <div class="results-toolbar">
+      <input type="text" id="filterInput" placeholder="Filter by IP or label…" oninput="applyFilter()">
+      <select id="filterStatus" onchange="applyFilter()">
+        <option value="all">All status</option>
+        <option value="online">Online only</option>
+        <option value="offline">Offline only</option>
+      </select>
+      <select id="pageSize" onchange="goPage(1)">
+        <option value="20" selected>20 / page</option>
+        <option value="50">50 / page</option>
+        <option value="100">100 / page</option>
+      </select>
+      <button class="btn" onclick="clearLog()">&#10005; Clear</button>
+      <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th onclick="sortBy('time')" id="th-time">#  Time <span class="sort-arrow">↕</span></th>
+            <th onclick="sortBy('ip')" id="th-ip">IP <span class="sort-arrow">↕</span></th>
+            <th onclick="sortBy('name')" id="th-name">Label <span class="sort-arrow">↕</span></th>
+            <th onclick="sortBy('status')" id="th-status">Status <span class="sort-arrow">↕</span></th>
+            <th onclick="sortBy('ms')" id="th-ms">Latency <span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="5" class="tbl-empty">No ping results yet. Start monitoring to see data.</td></tr>
+        </tbody>
+      </table>
+      <div class="tbl-footer">
+        <span id="tblInfo" style="color:var(--color-text-tertiary)">0 entries</span>
+        <div class="pager" id="pager"></div>
+      </div>
+    </div>
+
+    <div class="log-wrap">
+      <div class="log-hdr">
+        <div class="log-title">Live ping log</div>
+        <span style="font-size:10px;color:var(--color-text-tertiary)" id="lCt">0 entries</span>
+      </div>
+      <div class="log-body" id="lBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = {
+  devs: [], queue: [], running: false, timer: null, pTimer: null,
+  t0: null, dur: 300, log: [], pings: 0,
+  sortCol: 'time', sortDir: -1, page: 1, filtered: []
+};
+
+function uid() { return Math.random().toString(36).slice(2,7); }
+
+/* ── Tabs ──────────────────────────────────────── */
+function switchTab(name) {
+  ['setup','monitor','results'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+    document.getElementById('panel-'+t).classList.toggle('active', t===name);
+  });
+  if (name==='results') renderTable();
+}
+
+function updateBadges() {
+  document.getElementById('badge-setup').textContent = S.queue.length + S.devs.length;
+  document.getElementById('badge-monitor').textContent = S.devs.length;
+  document.getElementById('badge-results').textContent = S.log.length;
+}
+
+/* ── Net config ────────────────────────────────── */
+function onNetChange() {
+  const ip = document.getElementById('myIpIn').value.trim();
+  const p = ip.match(/^(\d+\.\d+\.\d+)\.\d+$/);
+  const el = document.getElementById('subnetEl');
+  if (p) { el.textContent = p[1]+'.0/24'; el.classList.remove('dim'); }
+  else { el.textContent = '—'; el.classList.add('dim'); }
+}
+function guessGateway() {
+  const ip = document.getElementById('myIpIn').value.trim();
+  const p = ip.match(/^(\d+\.\d+\.\d+)\.\d+$/);
+  if (!p) { alert('Enter your device IP first.'); return; }
+  document.getElementById('gwIn').value = p[1]+'.1';
+}
+function applyGateway() {
+  const gw = document.getElementById('gwIn').value.trim();
+  if (!gw) { alert('Enter a gateway IP first.'); return; }
+  queueDevice(gw,'Gateway'); renderQueue();
+}
+async function fetchPublicIp() {
+  const el = document.getElementById('pubIpEl');
+  el.textContent='fetching...'; el.classList.add('dim');
+  try {
+    const r = await Promise.race([fetch('https://api.ipify.org?format=json').then(r=>r.json()), new Promise((_,rej)=>setTimeout(rej,5000))]);
+    if (r&&r.ip) { el.textContent=r.ip; el.classList.remove('dim'); }
+  } catch { el.textContent='unavailable'; }
+}
+
+/* ── Queue ─────────────────────────────────────── */
+function validIp(ip) { return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip); }
+function queueDevice(ip,name) {
+  if (!validIp(ip)) return false;
+  if (S.queue.find(q=>q.ip===ip)||S.devs.find(d=>d.ip===ip)) return false;
+  S.queue.push({id:uid(),ip,name:name||ip}); return true;
+}
+function singleAdd() {
+  const ip=document.getElementById('sIp').value.trim(), nm=document.getElementById('sNm').value.trim();
+  if (!ip) return;
+  if (!validIp(ip)) { alert('Invalid IP.'); return; }
+  if (S.queue.find(q=>q.ip===ip)||S.devs.find(d=>d.ip===ip)) { alert('Already in list.'); return; }
+  queueDevice(ip,nm);
+  document.getElementById('sIp').value=''; document.getElementById('sNm').value='';
+  renderQueue(); document.getElementById('sIp').focus();
+}
+function bulkAdd() {
+  const lines=document.getElementById('bulkArea').value.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0,skipped=0,invalid=0;
+  lines.forEach(line=>{
+    const parts=line.split(/[,\t]/).map(s=>s.trim());
+    if (!validIp(parts[0])) { invalid++; return; }
+    if (queueDevice(parts[0],parts[1]||'')) added++; else skipped++;
+  });
+  document.getElementById('bulkArea').value='';
+  const m=[]; if(added)m.push('+'+added+' added'); if(skipped)m.push(skipped+' dup'); if(invalid)m.push(invalid+' invalid');
+  document.getElementById('bulkStatus').textContent=m.join(' · ');
+  setTimeout(()=>document.getElementById('bulkStatus').textContent='',3000);
+  renderQueue();
+}
+function addCommon() {
+  [['8.8.8.8','Google DNS'],['1.1.1.1','Cloudflare DNS'],['8.8.4.4','Google DNS 2']].forEach(([ip,n])=>queueDevice(ip,n));
+  renderQueue();
+}
+function addSubnetRange() {
+  const ip=document.getElementById('myIpIn').value.trim(), p=ip.match(/^(\d+\.\d+\.\d+)\.\d+$/);
+  if (!p) { alert('Enter your device IP first.'); return; }
+  const start=parseInt(prompt('Start of range (1-254):','1')||'1');
+  const end=parseInt(prompt('End of range (1-254):','20')||'20');
+  if (isNaN(start)||isNaN(end)||start<1||end>254||start>end) { alert('Invalid range.'); return; }
+  let added=0;
+  for(let i=start;i<=end;i++) if(queueDevice(`${p[1]}.${i}`,'')) added++;
+  document.getElementById('bulkStatus').textContent=`+${added} queued`;
+  setTimeout(()=>document.getElementById('bulkStatus').textContent='',3000);
+  renderQueue();
+}
+function removeFromQueue(id) { S.queue=S.queue.filter(q=>q.id!==id); renderQueue(); }
+function clearQueue() { S.queue=[]; renderQueue(); }
+function commitQueue() {
+  S.queue.forEach(q=>{
+    if(!S.devs.find(d=>d.ip===q.ip))
+      S.devs.push({id:uid(),ip:q.ip,name:q.name||q.ip,status:'pending',avg:null,min:null,max:null,ok:0,fail:0,hist:[],seen:null});
+  });
+  S.queue=[]; renderQueue(); renderDevices(); summ(); updateBadges();
+}
+function updateQueueName(id,val) { const q=S.queue.find(q=>q.id===id); if(q)q.name=val||q.ip; }
+function renderQueue() {
+  const list=document.getElementById('queueList'), wrap=document.getElementById('queueWrap');
+  document.getElementById('queueCount').textContent=S.queue.length?`${S.queue.length} in queue`:'0 in queue';
+  if(!S.queue.length){wrap.style.display='none';updateBadges();return;}
+  wrap.style.display='';
+  document.getElementById('qCt').textContent=`${S.queue.length} device${S.queue.length!==1?'s':''} ready`;
+  list.innerHTML='';
+  S.queue.forEach(q=>{
+    const row=document.createElement('div'); row.className='qi';
+    row.innerHTML=`<span class="qi-ip">${q.ip}</span><span class="qi-nm"><input type="text" value="${q.name!==q.ip?q.name:''}" placeholder="label…" oninput="updateQueueName('${q.id}',this.value)"></span><button class="qi-rm" onclick="removeFromQueue('${q.id}')">✕</button>`;
+    list.appendChild(row);
+  });
+  updateBadges();
+}
+
+/* ── Ping ──────────────────────────────────────── */
+async function ping(ip,timeout) {
+  const t0=performance.now(), ctrl=new AbortController(), tid=setTimeout(()=>ctrl.abort(),timeout);
+  try {
+    await fetch(`https://${ip}/favicon.ico?_=${Date.now()}`,{mode:'no-cors',signal:ctrl.signal,cache:'no-store'});
+    clearTimeout(tid); return {ok:true,ms:Math.round(performance.now()-t0)};
+  } catch(e) {
+    clearTimeout(tid); const ms=Math.round(performance.now()-t0);
+    if(e.name==='AbortError') return {ok:false,ms:timeout};
+    return {ok:true,ms};
+  }
+}
+function msClass(ms){return ms<50?'g':ms<200?'w':'r';}
+function msColor(ms){return ms<50?'#3B6D11':ms<200?'#854F0B':'#A32D2D';}
+
+function sparkline(hist) {
+  const pts=hist.slice(-24); if(!pts.length) return '<svg class="sparkline"></svg>';
+  const w=220,h=32,maxMs=Math.max(...pts.filter(p=>p.ok).map(p=>p.ms),1),step=w/Math.max(pts.length-1,1);
+  let path='',dots='';
+  pts.forEach((p,i)=>{
+    const x=Math.round(i*step),y=p.ok?Math.round(h-(p.ms/maxMs)*(h-5)):h;
+    path+=(i===0?'M':'L')+x+','+y;
+    dots+=`<circle cx="${x}" cy="${y}" r="2.5" fill="${p.ok?(p.ms<50?'#639922':p.ms<200?'#EF9F27':'#E24B4A'):'#E24B4A'}" opacity="0.9"/>`;
+  });
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="var(--color-border-secondary)" stroke-width="1.5" stroke-linejoin="round"/>${dots}</svg>`;
+}
+
+function renderDevices() {
+  const grid=document.getElementById('grid'),emp=document.getElementById('emp');
+  if(!S.devs.length){grid.innerHTML='';grid.appendChild(emp);return;}
+  if(emp.parentNode)emp.parentNode.removeChild(emp);
+  S.devs.forEach(d=>{
+    let el=document.getElementById('c-'+d.id);
+    if(!el){el=document.createElement('div');el.id='c-'+d.id;grid.appendChild(el);}
+    const tot=d.ok+d.fail,pct=tot?Math.round(d.ok/tot*100):null,ac=d.avg!==null?msClass(d.avg):'';
+    el.className='card '+d.status;
+    el.innerHTML=`<div class="card-top"><div><div class="card-name">${d.name}</div><div class="card-ip">${d.ip}</div></div><div class="badge ${d.status}">${d.status==='pending'?'—':d.status}</div></div>${sparkline(d.hist)}<div class="stats3"><div class="st"><div class="st-l">Avg ms</div><div class="st-v ${ac}">${d.avg??'—'}</div></div><div class="st"><div class="st-l">Min/Max</div><div class="st-v" style="font-size:11px">${d.min!==null?d.min+'/'+d.max:'—'}</div></div><div class="st"><div class="st-l">Uptime</div><div class="st-v ${pct!==null?(pct>90?'g':pct>70?'w':'r'):''}">${pct!==null?pct+'%':'—'}</div></div></div><div class="card-foot"><div class="last">${d.seen?d.seen:'not pinged'}</div><button class="rm" onclick="rmDev('${d.id}')">remove</button></div>`;
+  });
+  Array.from(grid.children).forEach(c=>{if(c.id&&c.id.startsWith('c-')&&!S.devs.find(d=>'c-'+d.id===c.id))grid.removeChild(c);});
+}
+function rmDev(id){S.devs=S.devs.filter(d=>d.id!==id);renderDevices();summ();updateBadges();}
+
+function summ() {
+  const on=S.devs.filter(d=>d.status==='online').length, off=S.devs.filter(d=>d.status==='offline').length;
+  const avgs=S.devs.filter(d=>d.avg!==null).map(d=>d.avg);
+  const ga=avgs.length?Math.round(avgs.reduce((a,b)=>a+b,0)/avgs.length):null;
+  document.getElementById('sum').innerHTML=
+    `<div class="chip">Total <b>${S.devs.length}</b></div>`+
+    `<div class="chip">Online <b style="color:#3B6D11">${on}</b></div>`+
+    `<div class="chip">Offline <b style="color:#A32D2D">${off}</b></div>`+
+    (ga!==null?`<div class="chip">Avg <b>${ga}ms</b></div>`:'')+
+    `<div class="chip">Pings <b>${S.pings}</b></div>`;
+}
+
+/* ── Results table ─────────────────────────────── */
+function applyFilter() { S.page=1; renderTable(); }
+
+function sortBy(col) {
+  if(S.sortCol===col) S.sortDir*=-1; else { S.sortCol=col; S.sortDir=-1; }
+  document.querySelectorAll('th').forEach(th=>th.classList.remove('sorted'));
+  const thEl=document.getElementById('th-'+col); if(thEl)thEl.classList.add('sorted');
+  renderTable();
+}
+
+function renderTable() {
+  const filterTxt=(document.getElementById('filterInput').value||'').toLowerCase();
+  const filterSt=document.getElementById('filterStatus').value;
+  const pgSize=parseInt(document.getElementById('pageSize').value)||20;
+
+  let rows=[...S.log];
+  if(filterTxt) rows=rows.filter(r=>r.ip.includes(filterTxt)||r.name.toLowerCase().includes(filterTxt));
+  if(filterSt==='online') rows=rows.filter(r=>r.ok);
+  if(filterSt==='offline') rows=rows.filter(r=>!r.ok);
+
+  // sort
+  rows.sort((a,b)=>{
+    let av,bv;
+    if(S.sortCol==='time'){av=a.tsNum;bv=b.tsNum;}
+    else if(S.sortCol==='ip'){av=a.ip;bv=b.ip;}
+    else if(S.sortCol==='name'){av=a.name;bv=b.name;}
+    else if(S.sortCol==='status'){av=a.ok?1:0;bv=b.ok?1:0;}
+    else if(S.sortCol==='ms'){av=a.ok?a.ms:99999;bv=b.ok?b.ms:99999;}
+    if(av<bv)return -1*S.sortDir; if(av>bv)return 1*S.sortDir; return 0;
+  });
+
+  S.filtered=rows;
+  const total=rows.length, pages=Math.max(1,Math.ceil(total/pgSize));
+  S.page=Math.min(S.page,pages);
+  const slice=rows.slice((S.page-1)*pgSize, S.page*pgSize);
+
+  const maxMs=Math.max(...rows.filter(r=>r.ok).map(r=>r.ms),1);
+  const tbody=document.getElementById('resultsBody');
+
+  if(!slice.length){
+    tbody.innerHTML='<tr><td colspan="5" class="tbl-empty">No results match your filter.</td></tr>';
+  } else {
+    tbody.innerHTML=slice.map((r,i)=>{
+      const rowNum=(S.page-1)*pgSize+i+1;
+      const barW=r.ok?Math.max(4,Math.round((r.ms/maxMs)*100)):0;
+      const barCol=r.ok?msColor(r.ms):'#A32D2D';
+      return `<tr>
+        <td style="color:var(--color-text-tertiary)">${rowNum}&nbsp;&nbsp;${r.time}</td>
+        <td>${r.ip}</td>
+        <td style="color:var(--color-text-secondary)">${r.name}</td>
+        <td><span class="pill ${r.ok?'ok':'fail'}">${r.ok?'online':'offline'}</span></td>
+        <td><div class="ms-bar-cell"><div class="ms-bar" style="width:${barW}px;background:${barCol}"></div><span style="color:${barCol}">${r.ok?r.ms+'ms':'—'}</span></div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('tblInfo').textContent=`${total} entr${total!==1?'ies':'y'}${total!==S.log.length?' (filtered)':''}`;
+
+  // pager
+  const pager=document.getElementById('pager'); pager.innerHTML='';
+  const mkBtn=(label,page,disabled,active)=>{
+    const b=document.createElement('button'); b.className='pg-btn'+(active?' cur':'');
+    b.textContent=label; b.disabled=disabled;
+    b.onclick=()=>goPage(page); pager.appendChild(b);
+  };
+  mkBtn('‹',S.page-1,S.page<=1,false);
+  const start=Math.max(1,S.page-2), end=Math.min(pages,S.page+2);
+  for(let p=start;p<=end;p++) mkBtn(p,p,false,p===S.page);
+  mkBtn('›',S.page+1,S.page>=pages,false);
+}
+
+function goPage(p){S.page=p;renderTable();}
+
+/* ── Log entry ─────────────────────────────────── */
+function logEntry(dev,res) {
+  const now=new Date(), ts=now.toTimeString().slice(0,8);
+  S.log.push({tsNum:now.getTime(),ts:now.toISOString(),time:ts,ip:dev.ip,name:dev.name,ok:res.ok,ms:res.ms});
+  const b=document.getElementById('lBody');
+  const row=document.createElement('div'); row.className='le';
+  row.innerHTML=`<span class="le-t">${ts}</span><span class="le-ip">${dev.ip}</span><span class="le-nm">${dev.name!==dev.ip?dev.name:''}</span><span class="le-m ${res.ok?'ok':'fail'}">${res.ok?'reply '+res.ms+'ms':'timeout'}</span>`;
+  b.insertBefore(row,b.firstChild);
+  while(b.children.length>200)b.removeChild(b.lastChild);
+  document.getElementById('lCt').textContent=S.log.length+' entries';
+  updateBadges();
+  // auto-refresh table if on results tab
+  if(document.getElementById('panel-results').classList.contains('active')) renderTable();
+}
+
+/* ── Cycle ─────────────────────────────────────── */
+async function cycle(){
+  const to=parseInt(document.getElementById('toIn').value)||3000;
+  for(const d of S.devs){
+    const r=await ping(d.ip,to);
+    d.status=r.ok?'online':'offline';
+    if(r.ok){d.ok++;d.hist.push({ok:true,ms:r.ms});}
+    else{d.fail++;d.hist.push({ok:false,ms:0});}
+    if(d.hist.length>60)d.hist.shift();
+    const g=d.hist.filter(h=>h.ok).map(h=>h.ms);
+    d.avg=g.length?Math.round(g.reduce((a,b)=>a+b,0)/g.length):null;
+    d.min=g.length?Math.min(...g):null;
+    d.max=g.length?Math.max(...g):null;
+    if(r.ok)d.seen=new Date().toTimeString().slice(0,8);
+    logEntry(d,r); S.pings++;
+  }
+  renderDevices(); summ();
+}
+
+/* ── Monitor controls ──────────────────────────── */
+function startMon(){
+  if(!S.devs.length){if(S.queue.length)commitQueue();else{alert('Add at least one device first.');return;}}
+  S.running=true; S.t0=Date.now();
+  S.dur=parseInt(document.getElementById('dSel').value);
+  const iv=parseInt(document.getElementById('iSel').value);
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='';
+  document.getElementById('gDot').classList.add('active');
+  if(S.dur>0){
+    document.getElementById('prog').style.display='';
+    S.pTimer=setInterval(()=>{
+      const e=(Date.now()-S.t0)/1000;
+      document.getElementById('progFill').style.width=Math.min(e/S.dur*100,100)+'%';
+      if(e>=S.dur)stopMon();
+    },500);
+  }
+  switchTab('monitor');
+  cycle();
+  S.timer=setInterval(()=>{if(S.running)cycle();},iv);
+}
+function stopMon(){
+  S.running=false; clearInterval(S.timer); clearInterval(S.pTimer);
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('gDot').classList.remove('active');
+  document.getElementById('prog').style.display='none';
+  document.getElementById('progFill').style.width='0%';
+}
+
+function exportCSV(){
+  if(!S.log.length){alert('No data yet.');return;}
+  const myIp=document.getElementById('myIpIn').value.trim()||'unknown';
+  const gw=document.getElementById('gwIn').value.trim()||'unknown';
+  const hdr=`# Network Monitor Export\n# Device IP: ${myIp}\n# Gateway: ${gw}\n# Exported: ${new Date().toISOString()}\nTimestamp,IP,Label,Status,Latency(ms)\n`;
+  const rows=(S.filtered.length&&S.filtered.length<S.log.length?S.filtered:S.log);
+  const csv=hdr+rows.map(e=>`${e.ts},${e.ip},"${e.name}",${e.ok?'online':'offline'},${e.ok?e.ms:''}`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='net-monitor-'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.csv';
+  a.click();
+}
+function clearLog(){
+  S.log=[]; S.filtered=[];
+  document.getElementById('lBody').innerHTML='';
+  document.getElementById('lCt').textContent='0 entries';
+  renderTable(); updateBadges();
+}
+
+updateBadges(); summ();
+</script>
