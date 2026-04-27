@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="title">
+        <div class="dot" id="gDot"></div>
+        Network Monitor
+      </div>
+      <div class="hdr-btns">
+        <button class="btn go" id="startBtn" onclick="startMon()">&#9654; Start</button>
+        <button class="btn stop" id="stopBtn" style="display:none" onclick="stopMon()">&#9632; Stop</button>
+        <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
+      </div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tabs">
+      <button class="tab active" id="tab-setup" onclick="switchTab('setup')">
+        Setup <span class="tab-badge" id="badge-setup">0</span>
+      </button>
+      <button class="tab" id="tab-monitor" onclick="switchTab('monitor')">
+        Monitor <span class="tab-badge" id="badge-monitor">0</span>
+      </button>
+      <button class="tab" id="tab-results" onclick="switchTab('results')">
+        Results <span class="tab-badge" id="badge-results">0</span>
+      </button>
+    </div>
+
+    <!-- SETUP TAB -->
+    <div class="tab-panel active" id="panel-setup">
+
+      <div class="net-banner">
+        <div class="net-banner-title">Network Configuration</div>
+        <div class="net-fields">
+          <div class="nf">
+            <label for="myIpIn">My Device IP</label>
+            <input type="text" id="myIpIn" placeholder="e.g. 192.168.1.50" oninput="onNetChange()">
+          </div>
+          <div class="nf">
+            <label for="gwIn">Gateway IP</label>
+            <input type="text" id="gwIn" placeholder="e.g. 192.168.1.1">
+          </div>
+          <div class="net-actions">
+            <button class="btn" onclick="applyGateway()">+ Add Gateway</button>
+            <button class="btn" onclick="guessGateway()">Auto-fill Gateway</button>
+          </div>
+        </div>
+        <div class="net-info">
+          <div class="ni">
+            <div class="ni-l">Subnet</div>
+            <div class="ni-v dim" id="subnetEl">—</div>
+          </div>
+          <div class="ni">
+            <div class="ni-l">Public IP</div>
+            <div class="ni-v dim" id="pubIpEl">—</div>
+          </div>
+          <button class="btn" style="margin-left:auto" onclick="fetchPublicIp()">Fetch Public IP</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>Add Devices</span>
+          <span id="queueCount" style="color:var(--clr-text-muted)">0 in queue</span>
+        </div>
+
+        <div class="single-row">
+          <input type="text" class="ip-in" id="sIp" placeholder="IP address" onkeydown="if(event.key==='Enter')singleAdd()">
+          <input type="text" class="nm-in" id="sNm" placeholder="Label (optional)" onkeydown="if(event.key==='Enter')singleAdd()">
+          <button class="btn accent" onclick="singleAdd()">+ Add</button>
+          <button class="btn" onclick="addCommon()">+ Common DNS</button>
+          <button class="btn" onclick="addSubnetRange()">+ Scan Range</button>
+        </div>
+
+        <div class="bulk-section">
+          <div class="bulk-label">
+            <span>Bulk Add</span>
+            <span class="bulk-hint">One per line — IP or "IP, label"</span>
+          </div>
+          <textarea class="bulk-area" id="bulkArea" placeholder="192.168.1.1, Gateway&#10;192.168.1.10, NAS&#10;8.8.8.8, Google DNS&#10;1.1.1.1"></textarea>
+          <div class="bulk-actions">
+            <button class="btn accent" onclick="bulkAdd()">+ Add All</button>
+            <button class="btn" onclick="document.getElementById('bulkArea').value=''">Clear</button>
+            <span class="bulk-status" id="bulkStatus"></span>
+          </div>
+        </div>
+
+        <div class="queue-wrap" id="queueWrap" style="display:none">
+          <div class="queue-label">Device Queue — click label to rename</div>
+          <div class="queue-list" id="queueList"></div>
+          <div class="queue-footer">
+            <span class="q-ct" id="qCt"></span>
+            <button class="btn" onclick="clearQueue()" style="margin-left:auto">Clear All</button>
+            <button class="btn go" onclick="commitQueue()">&#10003; Add to Monitor</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <div class="cg">
+          <label for="iSel">Ping Interval</label>
+          <select id="iSel">
+            <option value="2000">Every 2s</option>
+            <option value="5000" selected>Every 5s</option>
+            <option value="10000">Every 10s</option>
+            <option value="30000">Every 30s</option>
+            <option value="60000">Every 1min</option>
+          </select>
+        </div>
+        <div class="cg">
+          <label for="dSel">Duration</label>
+          <select id="dSel">
+            <option value="60">1 minute</option>
+            <option value="300" selected>5 minutes</option>
+            <option value="600">10 minutes</option>
+            <option value="1800">30 minutes</option>
+            <option value="3600">1 hour</option>
+            <option value="0">Continuous</option>
+          </select>
+        </div>
+        <div class="cg">
+          <label for="toIn">Timeout (ms)</label>
+          <input type="number" id="toIn" value="3000" min="500" max="10000" step="500" style="width:100px">
+        </div>
+      </div>
+
+    </div><!-- /setup -->
+
+    <!-- MONITOR TAB -->
+    <div class="tab-panel" id="panel-monitor">
+      <div class="prog" id="prog">
+        <div class="prog-fill" id="progFill"></div>
+      </div>
+      <div class="summary" id="sum"></div>
+      <div class="grid" id="grid">
+        <div class="empty" id="emp">No devices yet. Go to Setup to add devices, then start monitoring.</div>
+      </div>
+    </div>
+
+    <!-- RESULTS TAB -->
+    <div class="tab-panel" id="panel-results">
+      <div class="results-toolbar">
+        <input type="text" id="filterInput" placeholder="Filter by IP or label…" oninput="applyFilter()">
+        <select id="filterStatus" onchange="applyFilter()">
+          <option value="all">All status</option>
+          <option value="online">Online only</option>
+          <option value="offline">Offline only</option>
+        </select>
+        <select id="pageSize" onchange="goPage(1)">
+          <option value="20" selected>20 / page</option>
+          <option value="50">50 / page</option>
+          <option value="100">100 / page</option>
+        </select>
+        <button class="btn" onclick="clearLog()">&#10005; Clear</button>
+        <button class="btn" onclick="exportCSV()">&#8615; CSV</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th onclick="sortBy('time')" id="th-time"># Time <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('ip')" id="th-ip">IP <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('name')" id="th-name">Label <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('status')" id="th-status">Status <span class="sort-arrow">↕</span></th>
+              <th onclick="sortBy('ms')" id="th-ms">Latency <span class="sort-arrow">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="5" class="tbl-empty">No ping results yet. Start monitoring to see data.</td></tr>
+          </tbody>
+        </table>
+        <div class="tbl-footer">
+          <span id="tblInfo" style="color:var(--clr-text-muted)">0 entries</span>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+
+      <div class="log-wrap">
+        <div class="log-hdr">
+          <div class="log-title">Live Ping Log</div>
+          <span class="log-ct" id="lCt">0 entries</span>
+        </div>
+        <div class="log-body" id="lBody"></div>
+      </div>
+    </div><!-- /results -->
+
+  </div><!-- /app -->
+
+  <script src="app.js"></script>
+</body>
+</html>
